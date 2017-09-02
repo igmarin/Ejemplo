@@ -1,7 +1,3 @@
-// filename ******** Main.C ************** 
-// LCD Display (HD44780) on Port PAD,M for the 9S12C32   
-// Jonathan W. Valvano 1/14/07
-// Purpose: test program for 4-bit LCD.C driver
 
 /*   
   size is 2*16 
@@ -26,7 +22,7 @@ addr  00 01 02 03 04 05 06 07 40 41 42 43 44 45 46 47
 */
 #include <hidef.h>      /* common defines and macros */
 #include "derivative.h"      // Definiciones de la familia del micro 
-#include <mc9s12c32.h>       /******* Definiciones específicas del micro *******/
+#include <mc9s12c32.h>       /******* Definiciones especÃ­ficas del micro *******/
 #include "LCD.H"
 #include "PLL.H"
 
