@@ -1,0 +1,269 @@
+*** EVALUATION ***
+ANSI-C/cC++ Compiler for HC12 V-5.0.41 Build 10203, Jul 23 2010
+
+    1:  // filename ******** Main.C ************** 
+    2:  // LCD Display (HD44780) on Port PAD,M for the 9S12C32   
+    3:  // Jonathan W. Valvano 1/14/07
+    4:  // Purpose: test program for 4-bit LCD.C driver
+    5:  
+    6:  /*   
+    7:    size is 2*16 
+    8:    if do not need to read busy, then you can tie R/W=ground 
+    9:    ground  pin 3  = pin 1    Vss
+   10:    power   pin 1  = pin 2    Vdd   +5V
+   11:    ground  pin 3  = pin 3    Vlc   grounded for highest contrast
+   12:    PM5     pin 21 = pin 4    RS    (1 for data, 0 for control/status)
+   13:    PAD0    pin 18 = pin 5    R/W   (1 for read, 0 for write)
+   14:    PM4     pin 17 = pin 6    E     (enable)
+   15:    PM3     pin 23 = pin 14   DB7   (4-bit data)
+   16:    PM2     pin 19 = pin 13   DB6
+   17:    PM1     pin 26 = pin 12   DB5
+   18:    PM0     pin 28 = pin 11   DB4
+   19:   
+   20:    PT0     pin 13 = LED
+   21:    PT1     pin 15 = Switch 1
+   22:    PT2     pin 30 = Switch 2
+   23:    
+   24:  16 characters are configured as 2 rows of 8
+   25:  addr  00 01 02 03 04 05 06 07 40 41 42 43 44 45 46 47
+   26:  */
+   27:  #include <hidef.h>      /* common defines and macros */
+   28:  #include "derivative.h"      // Definiciones de la familia del micro 
+   29:  #include <mc9s12c32.h>       /******* Definiciones específicas del micro *******/
+   30:  #include "LCD.H"
+   31:  #include "PLL.H"
+   32:  
+   33:  
+   34:  #pragma LINK_INFO DERIVATIVE "mc9s12c32"
+   35:  
+   36:  //--------------------TimerInit---------------
+   37:  // initialize timer module to 0.667us(Boot Mode) TCNT clock
+   38:  // inputs: none
+   39:  // outputs: none
+   40:  void TimerInit(void){
+*** EVALUATION ***
+
+Function: TimerInit
+Source  : C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\prm;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\cmd;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\Sources;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\include" -Env"OBJPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin" -Env"TEXTPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\LCD_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+   41:    DDRT  = 0x01;   // PT.0 como salida (LED), PT.1 y PT2 como entradas (Switch)
+  0000 cc0401       [2]     LDD   #1025
+  0003 7b0000       [3]     STAB  _DDRT
+   42:    DDRA  = 0x01;    // PA.0 como salida (LED)
+  0006 5b00         [2]     STAB  _DDRAB
+   43:    DDRB  = 0x04;    // PB.4 como salida (LED)
+  0008 5a00         [2]     STAA  _DDRAB:1
+   44:    TSCR1 = 0x80;   // Enable TCNT, 24MHz in both boo tand run modes
+  000a c680         [1]     LDAB  #128
+  000c 5b00         [2]     STAB  _TSCR1
+   45:    TSCR2 = 0x04;   // divide by 16 TCNT prescale, TCNT at 667nsec
+  000e 5a00         [2]     STAA  _TSCR2
+   46:    PACTL = 0;      // timer prescale used for TCNT
+  0010 790000       [3]     CLR   _PACTL
+   47:  /* Bottom three bits of TSCR2 (PR2,PR1,PR0) determine TCNT period
+   48:      divide  24MHz E clock    
+   49:  000   1     42ns  TOF  2.73ms  
+   50:  001   2     84ns  TOF  5.46ms   
+   51:  010   4    167ns  TOF  10.9ms       
+   52:  011   8    333ns  TOF  21.8ms 	 
+   53:  100  16    667ns  TOF  43.7ms 	 
+   54:  101  32   1.33us  TOF  87.4ms		 
+   55:  110  64   2.67us  TOF 174.8ms   
+   56:  111 128   5.33us  TOF 349.5ms    */ 
+   57:  // Be careful, TSCR1 and TSCR2 maybe set in other rituals
+   58:  }
+  0013 3d           [5]     RTS   
+   59:  
+   60:  //---------------------mwait---------------------
+   61:  // wait specified number of msec
+   62:  // Input: number of msec to wait
+   63:  // Output: none
+   64:  // assumes TCNT timer is running at 667ns
+   65:  void mwait(unsigned short msec){ 
+*** EVALUATION ***
+
+Function: mwait
+Source  : C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\prm;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\cmd;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\Sources;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\include" -Env"OBJPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin" -Env"TEXTPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\LCD_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+  0000 6cac         [2]     STD   4,-SP
+   66:  unsigned short startTime;
+   67:    for(; msec>0; msec--){
+  0002 2012         [3]     BRA   *+20 ;abs = 0016
+   68:      startTime = TCNT;
+  0004 dc00         [3]     LDD   _TCNT
+  0006 6c82         [2]     STD   2,SP
+   69:      while((TCNT-startTime) <= 1500){} 
+  0008 dc00         [3]     LDD   _TCNT
+  000a a382         [3]     SUBD  2,SP
+  000c 8c05dc       [2]     CPD   #1500
+  000f 23f7         [3/1]   BLS   *-7 ;abs = 0008
+  0011 ee80         [3]     LDX   0,SP
+  0013 09           [1]     DEX   
+  0014 6e80         [2]     STX   0,SP
+  0016 ec80         [3]     LDD   0,SP
+  0018 26ea         [3/1]   BNE   *-20 ;abs = 0004
+   70:    }
+   71:  }
+  001a 1b84         [2]     LEAS  4,SP
+  001c 3d           [5]     RTS   
+   72:  
+   73:  //---------------------check---------------------
+   74:  // if LCD broken toggle LED1 at 2Hz
+   75:  // Input: last LCD status, 0 means bad
+   76:  // Output: none
+   77:  // Error: if status is zero, this function will not return
+   78:  void check(short status){	 // 0 if LCD is broken
+*** EVALUATION ***
+
+Function: check
+Source  : C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\prm;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\cmd;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\Sources;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\include" -Env"OBJPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin" -Env"TEXTPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\LCD_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+   79:    if(status ==0){		   
+  0000 04640d       [3]     TBNE  D,*+16 ;abs = 0010
+   80:      for(;;) {
+   81:        PORTA ^= 0x01;   // fast toggle LEDA
+  0003 d600         [3]     LDAB  _PORTAB
+  0005 c801         [1]     EORB  #1
+  0007 5b00         [2]     STAB  _PORTAB
+   82:        mwait(250);    // 0.25 sec wait
+  0009 c6fa         [1]     LDAB  #250
+  000b 87           [1]     CLRA  
+  000c 0700         [4]     BSR   mwait
+  000e 20f3         [3]     BRA   *-11 ;abs = 0003
+   83:      }
+   84:    }
+   85:  }
+  0010 3d           [5]     RTS   
+   86:  //---------------------swait---------------------
+   87:  // wait specified 2 sec, then clear LCD
+   88:  // Input: none
+   89:  // Output: none
+   90:  // uses mswait and TCNT timer
+   91:  void swait(void){			
+*** EVALUATION ***
+
+Function: swait
+Source  : C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\prm;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\cmd;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\Sources;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\include" -Env"OBJPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin" -Env"TEXTPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\LCD_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+   92:    PORTB ^= 0x04;     // toggle LEDB
+  0000 d600         [3]     LDAB  _PORTAB:1
+  0002 c804         [1]     EORB  #4
+  0004 5b00         [2]     STAB  _PORTAB:1
+   93:    mwait(2000);     // 2 sec wait
+  0006 cc07d0       [2]     LDD   #2000
+  0009 0700         [4]     BSR   mwait
+   94:    check(LCD_Clear());
+  000b 160000       [4]     JSR   LCD_Clear
+  000e 060000       [3]     JMP   check
+   95:  }
+   96:  
+   97:  //---------------------blank---------------------
+   98:  // move cursor to second half of LCD display
+   99:  // 32 spaces from address 08 to 40
+  100:  // Input: none
+  101:  // Output: none
+  102:  void blank(void){
+*** EVALUATION ***
+
+Function: blank
+Source  : C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\prm;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\cmd;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\Sources;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\include" -Env"OBJPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin" -Env"TEXTPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\LCD_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+  103:    check(LCD_OutString("                        "));
+  0000 cc0000       [2]     LDD   #"                        "
+  0003 160000       [4]     JSR   LCD_OutString
+  0006 060000       [3]     JMP   check
+  104:  }
+  105:  
+  106:  void main(void) {
+*** EVALUATION ***
+
+Function: main
+Source  : C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\Sources\main.c
+Options : -Cc -D_HCS12 -D__NO_FLOAT__ -D_HCS12_SERIALMON -Env"GENPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\prm;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\cmd;C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\Sources;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\lib;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\src;C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\include" -Env"LIBPATH=C:\Program Files (x86)\Freescale\CWS12v5.2\lib\HC12c\include" -Env"OBJPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin" -Env"TEXTPATH=C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\bin" -Lasm=%n.lst -Ms -ObjN="C:\Users\Ismael\Documents\- Micros 2\Programas\LCD_9S12\LCD_Data\Monitor\ObjectCode\main.c.o" -WmsgSd1106
+
+  107:   // unsigned char cont;
+  108:    PLL_Init();       // set E clock to 24 MHz
+  0000 160000       [4]     JSR   PLL_Init
+  109:    TimerInit();      // enable Port T 
+  0003 0700         [4]     BSR   TimerInit
+  110:    check(LCD_Open(LCDINC+LCDNOSHIFT,
+  0005 c602         [1]     LDAB  #2
+  0007 37           [2]     PSHB  
+  0008 c7           [1]     CLRB  
+  0009 37           [2]     PSHB  
+  000a 37           [2]     PSHB  
+  000b c628         [1]     LDAB  #40
+  000d 160000       [4]     JSR   LCD_Open
+  0010 1b83         [2]     LEAS  3,SP
+  0012 0700         [4]     BSR   check
+  111:      LCDNOCURSOR+LCDNOBLINK,
+  112:      LCDNOSCROLL+LCDLEFT,
+  113:      LCD2LINE+LCD7DOT));
+  114:    check(LCD_OutString("9S12C32         ")); blank();
+  0014 cc0000       [2]     LDD   #"9S12C32         "
+  0017 0738         [4]     BSR   *+58 ;abs = 0051
+  0019 0700         [4]     BSR   blank
+  115:    check(LCD_OutString("Valvano         ")); swait();
+  001b cc0000       [2]     LDD   #"Valvano         "
+  001e 0731         [4]     BSR   *+51 ;abs = 0051
+  0020 0700         [4]     BSR   swait
+  116:   //asm cli   // allows debugger to run
+  117:    for(;;) {
+  118:   /*  if ( (PTT & 0x02) != 0){
+  119:        if (cont<15){
+  120:           cont++;   
+  121:            mwait(50); ;
+  122:      } else if (cont>16){
+  123:                cont = 0;
+  124:                mwait(50);
+  125:      }
+  126:     }
+  127:      
+  128:     if ( (PTT & 0x04) != 0){
+  129:        if (cont>0){
+  130:           cont--;   
+  131:           mwait(50);
+  132:      } else if (cont<0){
+  133:                cont = 15;
+  134:                mwait(50);
+  135:      }
+  136:     }   */
+  137:      //check(LCD_OutString("ABCDEFGH  "));
+  138:      //short(LCD_OutDec(unsigned char *cont)); 
+  139:      //blank();
+  140:      check(LCD_OutString("IJKLMNOP 1 1 1 1")); swait();
+  0022 cc0000       [2]     LDD   #"IJKLMNOP 1 1 1 1"
+  0025 072a         [4]     BSR   *+44 ;abs = 0051
+  0027 0700         [4]     BSR   swait
+  141:      check(LCD_OutString("01234567 2 2 2 2")); blank();
+  0029 cc0000       [2]     LDD   #"01234567 2 2 2 2"
+  002c 0723         [4]     BSR   *+37 ;abs = 0051
+  002e 0700         [4]     BSR   blank
+  142:      check(LCD_OutString("890,./<> 3 3 3 3")); swait();
+  0030 cc0000       [2]     LDD   #"890,./<> 3 3 3 3"
+  0033 071c         [4]     BSR   *+30 ;abs = 0051
+  0035 0700         [4]     BSR   swait
+  143:      check(LCD_OutString("abcdefgh 4 4 4 4")); blank();
+  0037 cc0000       [2]     LDD   #"abcdefgh 4 4 4 4"
+  003a 0715         [4]     BSR   *+23 ;abs = 0051
+  003c 0700         [4]     BSR   blank
+  144:      check(LCD_OutString("ijklmnop 5 5 5 5")); swait();
+  003e cc0000       [2]     LDD   #"ijklmnop 5 5 5 5"
+  0041 070e         [4]     BSR   *+16 ;abs = 0051
+  0043 0700         [4]     BSR   swait
+  145:      check(LCD_OutString("!@#$%^&* 6 6 6 6")); blank();
+  0045 cc0000       [2]     LDD   #"!@#$%^&* 6 6 6 6"
+  0048 0707         [4]     BSR   *+9 ;abs = 0051
+  004a 0700         [4]     BSR   blank
+  146:      check(LCD_OutString("()_+-=[] 7 7 7 7")); swait();
+  004c cc0000       [2]     LDD   #"()_+-=[] 7 7 7 7"
+  004f 20cd         [3]     BRA   *-49 ;abs = 001e
+  0051 160000       [4]     JSR   LCD_OutString
+  0054 060000       [3]     JMP   check
+  147:    } 
+  148:  }
