@@ -1,25 +1,3 @@
-
-/*   
-  size is 2*16 
-  if do not need to read busy, then you can tie R/W=ground 
-  ground  pin 3  = pin 1    Vss
-  power   pin 1  = pin 2    Vdd   +5V
-  ground  pin 3  = pin 3    Vlc   grounded for highest contrast
-  PM5     pin 21 = pin 4    RS    (1 for data, 0 for control/status)
-  PAD0    pin 18 = pin 5    R/W   (1 for read, 0 for write)
-  PM4     pin 17 = pin 6    E     (enable)
-  PM3     pin 23 = pin 14   DB7   (4-bit data)
-  PM2     pin 19 = pin 13   DB6
-  PM1     pin 26 = pin 12   DB5
-  PM0     pin 28 = pin 11   DB4
- 
-  PT0     pin 13 = LED
-  PT1     pin 15 = Switch 1
-  PT2     pin 30 = Switch 2
-  
-16 characters are configured as 2 rows of 8
-addr  00 01 02 03 04 05 06 07 40 41 42 43 44 45 46 47
-*/
 #include <hidef.h>      /* common defines and macros */
 #include "derivative.h"      // Definiciones de la familia del micro 
 #include <mc9s12c32.h>       /******* Definiciones específicas del micro *******/
